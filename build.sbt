@@ -34,32 +34,40 @@ ThisBuild / Compile / scalacOptions := Seq(
   "-new-syntax",
   "-indent",
   "-language:strictEquality",
-  "-java-output-version", "11",
-//  "-Yimports:scala,scala.Predef,java.lang,equality"
-//  "-Wunused:all"
+  "-java-output-version", "21",
 )
 
-
-lazy val root = project.in(file(".")).dependsOn(examples).settings(
-  name := projectName,
-  publish / skip := true
-).aggregate(examples, examples)
-
-lazy val examples = project.in(file("examples"))
-  .enablePlugins(NativeImagePlugin)
+lazy val root = project
+  .in(file("."))
   .settings(
-  Compile / mainClass := Some("examples.rpcServer"),
-  nativeImageInstalled := true,
-  nativeImageGraalHome := java.nio.file.Paths.get(System.getProperty("user.home"), "graalvm"),
-  nativeImageOptions ++=
-    List(
-      "--no-fallback",
-      s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
-      s"-H:ConfigurationFileDirectories=${baseDirectory.value / "native-image-config" }"
-    ),
-  name := projectName,
-  libraryDependencies ++= Seq(
-    "ch.produs" %% "type-safe-equality" % "0.6.0",
-    "org.automorph" %% "automorph-default" % "0.2.3"
+    name := projectName,
+    libraryDependencies ++= Seq(
+      "ch.produs" %% "type-safe-equality" % "0.6.0",
+      "org.automorph" %% "automorph-default" % "0.2.3"
+    )
   )
-)
+
+lazy val nativeImages = taskKey[Unit]("Creates native images for rpcServer and rpcClient")
+nativeImages := Def.sequential(rpcServer/nativeImage, rpcClient/nativeImage).value
+
+
+lazy val rpcServer = nativeProject(project, "examples.rpcServer")
+
+lazy val rpcClient = nativeProject(project, "examples.rpcClient")
+
+def nativeProject(project: Project, executable: String): Project = {
+    project
+    .dependsOn(root)
+    .enablePlugins(NativeImagePlugin)
+    .settings(
+      Compile / mainClass := Some(executable),
+      nativeImageInstalled := true,
+      nativeImageGraalHome := java.nio.file.Paths.get(System.getProperty("user.home"), "graalvm"),
+      nativeImageOptions ++=
+        List(
+          "--no-fallback",
+          s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
+          s"-H:ConfigurationFileDirectories=${baseDirectory.value / "native-image-config" }"
+        )
+    )
+}
