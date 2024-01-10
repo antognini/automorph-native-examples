@@ -66,7 +66,7 @@ def nativeProject(project: Project, executable: String): Project = {
       nativeImageOptions ++=
         List(
           "--no-fallback",
-          s"--parallelism=${java.lang.Runtime.getRuntime.availableProcessors}",
+          s"--parallelism=${Math.min(16, java.lang.Runtime.getRuntime.availableProcessors)}",
           s"-H:ConfigurationFileDirectories=${baseDirectory.value / "native-image-config" }"
         )
     )
