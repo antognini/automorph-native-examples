@@ -44,9 +44,7 @@ lazy val root = project
     libraryDependencies ++= Seq(
       "ch.produs" %% "type-safe-equality" % "0.6.0",
       "org.automorph" %% "automorph-default" % "0.2.3",
-      "org.automorph" %% "automorph-core" % "0.2.3",
-      "org.automorph" %% "automorph-jetty" % "0.2.3",
-      "org.automorph" %% "automorph-jackson" % "0.2.3"
+      "org.automorph" %% "automorph-zio" % "0.2.3"
     )
   )
 
