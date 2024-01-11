@@ -1,11 +1,12 @@
 package examples
 
-import automorph.codec.json.CirceJsonCodec
+import automorph.codec.json.JacksonJsonCodec
 import automorph.protocol.JsonRpcProtocol
 import automorph.system.FutureSystem
-import automorph.transport.http.server.NanoServer
+import automorph.transport.http.server.{JettyServer, NanoServer}
 import automorph.{Default, RpcServer}
-import io.circe.generic.auto.*
+import automorph.codec.json.CirceJsonCodec
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
@@ -19,15 +20,15 @@ class ApiImpl:
 @main def rpcServer(): Unit =
   val api = ApiImpl()
 
-  // Configure JSON-RPC HTTP & WebSocket server to listen on port 9000 for requests to '/api'
-  val nanoServer = NanoServer(
+  val nanoServer = JettyServer(
     effectSystem = FutureSystem(),
     port = 9000,
     pathPrefix = "/api",
     webSocket = false
   )
 
-  val server = RpcServer(nanoServer, JsonRpcProtocol(CirceJsonCodec()))
+//  val server = RpcServer(nanoServer, JsonRpcProtocol(CirceJsonCodec()))
+  val server = Default.rpcServer(9000, "/api")
 
   // Expose the server API implementation to be called remotely
   val apiServer = server.bind(api)

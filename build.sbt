@@ -43,7 +43,10 @@ lazy val root = project
     name := projectName,
     libraryDependencies ++= Seq(
       "ch.produs" %% "type-safe-equality" % "0.6.0",
-      "org.automorph" %% "automorph-default" % "0.2.3"
+      "org.automorph" %% "automorph-default" % "0.2.3",
+      "org.automorph" %% "automorph-core" % "0.2.3",
+      "org.automorph" %% "automorph-jetty" % "0.2.3",
+      "org.automorph" %% "automorph-jackson" % "0.2.3"
     )
   )
 
@@ -51,11 +54,11 @@ lazy val nativeImages = taskKey[Unit]("Creates native images for rpcServer and r
 nativeImages := Def.sequential(rpcServer/nativeImage, rpcClient/nativeImage).value
 
 
-lazy val rpcServer = nativeProject(project, "examples.rpcServer")
+lazy val rpcServer = nativeProject(project, "examples.rpcServer", fallback = true)
 
-lazy val rpcClient = nativeProject(project, "examples.rpcClient")
+lazy val rpcClient = nativeProject(project, "examples.rpcClient", fallback = false)
 
-def nativeProject(project: Project, executable: String): Project = {
+def nativeProject(project: Project, executable: String, fallback:Boolean): Project = {
     project
     .dependsOn(root)
     .enablePlugins(NativeImagePlugin)
@@ -65,7 +68,11 @@ def nativeProject(project: Project, executable: String): Project = {
       nativeImageGraalHome := java.nio.file.Paths.get(System.getProperty("user.home"), "graalvm"),
       nativeImageOptions ++=
         List(
-          "--no-fallback",
+          if (fallback) "--force-fallback" else "--no-fallback",
+          "-Ob",
+          "--gc=G1",
+          "--enable-http",
+          "--enable-https",
           s"--parallelism=${Math.min(16, java.lang.Runtime.getRuntime.availableProcessors)}",
           s"-H:ConfigurationFileDirectories=${baseDirectory.value / "native-image-config" }"
         )
