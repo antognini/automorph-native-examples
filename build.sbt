@@ -44,7 +44,10 @@ lazy val root = project
     libraryDependencies ++= Seq(
       "ch.produs" %% "type-safe-equality" % "0.6.0",
       "org.automorph" %% "automorph-default" % "0.2.3",
-      "org.automorph" %% "automorph-zio" % "0.2.3"
+      "org.automorph" %% "automorph-zio" % "0.2.3",
+      "org.automorph" %% "automorph-sttp" % "0.2.3",
+      "org.automorph" %% "automorph-jackson" % "0.2.3",
+      "com.softwaremill.sttp.client3" %% "httpclient-backend" % "3.5.2"
     )
   )
 
@@ -68,7 +71,8 @@ def nativeProject(project: Project, executable: String, fallback:Boolean): Proje
         List(
           if (fallback) "--force-fallback" else "--no-fallback",
           "-Ob",
-          "--gc=G1",
+//          "--gc=G1",
+          "--gc=epsilon",
           "--enable-http",
           "--enable-https",
           s"--parallelism=${Math.min(16, java.lang.Runtime.getRuntime.availableProcessors)}",
